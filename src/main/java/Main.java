@@ -1,10 +1,10 @@
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.*;
 import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.mitm.RootCertificateException;
+import request.RequestParametersExtractor;
+import response.ResponseDataExtractor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -47,15 +47,22 @@ public class Main {
 
                             @Override
                             public HttpResponse clientToProxyRequest(HttpObject httpObject) {
-                                System.out.println("======================CLIENT TO PROXY=========================");
-                                System.out.println(httpObject);
+                                try {
+                                    assert httpObject instanceof FullHttpRequest;
+                                    System.out.println(RequestParametersExtractor.extract((FullHttpRequest) httpObject));
+                                } catch (Throwable e) {
+                                    e.printStackTrace();
+                                }
                                 return null;
                             }
 
                             @Override
                             public HttpObject serverToProxyResponse(HttpObject httpObject) {
-                                System.out.println("**********************SERVER TO PROXY************************");
-                                System.out.println(httpObject);
+                                try {
+                                    System.out.println(ResponseDataExtractor.extract((FullHttpResponse) httpObject));
+                                } catch (Throwable e) {
+                                    e.printStackTrace();
+                                }
                                 return httpObject;
                             }
                         };
@@ -63,6 +70,5 @@ public class Main {
                 })
                 .start();
     }
-
 
 }
