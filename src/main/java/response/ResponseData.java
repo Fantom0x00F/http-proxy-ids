@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ResponseData {
-    int responseCode;
-    List<String> headers = new ArrayList<String>();
+    public int responseCode;
+    public List<String> headers = new ArrayList<String>();
 
-    String contentType = "raw";
-    byte[] responseContent;
+    public String contentType = "raw";
+    public byte[] responseContent;
 
     @Override
     public String toString() {
