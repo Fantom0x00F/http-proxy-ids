@@ -2,20 +2,19 @@ import analyser.Analyser;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpRequest;
+import notification.CommandLineNotification;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersAdapter;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.mitm.RootCertificateException;
-import request.RequestParameters;
-import request.RequestParametersExtractor;
-import response.ResponseDataExtractor;
+import storage.InMemoryStatisticStorage;
+import watcher.WatcherFilter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class Main {
 
@@ -30,8 +29,6 @@ public class Main {
 
     private static final int MAXIMUM_REQUEST_SIZE_IN_BYTES = 10 * 1024 * 1024;
     private static final int MAXIMUM_RESPONSE_SIZE_IN_BYTES = 10 * 1024 * 1024;
-    private static final int REQUIRED_REQUESTS_FOR_TRAINING = 10;
-    private static AtomicInteger trainingRequestsCount = new AtomicInteger(0);
 
     public static void main(String[] args) throws IOException, RootCertificateException {
         Main main = new Main();
@@ -44,7 +41,14 @@ public class Main {
 
     private void run() {
         final Analyser analyser = new Analyser();
+        analyser.setAlertNotificator(new CommandLineNotification());
+        analyser.setStatisticStorage(new InMemoryStatisticStorage());
 
+        startServer((request) -> new WatcherFilter(analyser, request));
+    }
+
+
+    private void startServer(Function<HttpRequest, HttpFilters> filterBuilder) {
         DefaultHttpProxyServer.bootstrap()
                 .withPort(PORT)
                 .withChainProxyManager((httpRequest, chainedProxies) -> chainedProxies.add(new ChainedProxyAdapter() {
@@ -68,41 +72,7 @@ public class Main {
                     }
 
                     public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                        return new HttpFiltersAdapter(originalRequest) {
-                            private RequestParameters requestParameters;
-
-                            @Override
-                            public HttpResponse clientToProxyRequest(HttpObject httpObject) {
-                                try {
-                                    assert httpObject instanceof FullHttpRequest;
-                                    requestParameters = RequestParametersExtractor.extract((FullHttpRequest) httpObject);
-                                } catch (Throwable e) {
-                                    e.printStackTrace();
-                                }
-                                return null;
-                            }
-
-                            @Override
-                            public HttpObject serverToProxyResponse(HttpObject httpObject) {
-                                try {
-                                    if (trainingRequestsCount.get() == 0) {
-                                        analyser.startTraining();
-                                    }
-
-                                    analyser.processRequest(requestParameters, ResponseDataExtractor.extract((FullHttpResponse) httpObject));
-
-                                    if (trainingRequestsCount.get() < REQUIRED_REQUESTS_FOR_TRAINING) {
-                                        int trainingRequests = trainingRequestsCount.incrementAndGet();
-                                        if (trainingRequests == REQUIRED_REQUESTS_FOR_TRAINING) {
-                                            analyser.stopTraining();
-                                        }
-                                    }
-                                } catch (Throwable e) {
-                                    e.printStackTrace();
-                                }
-                                return httpObject;
-                            }
-                        };
+                        return filterBuilder.apply(originalRequest);
                     }
                 })
                 .start();

@@ -1,5 +1,6 @@
 package request;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -21,7 +22,12 @@ public final class RequestParametersExtractor {
             requestParameters.params.add(param.getName());
         }
 
-        requestParameters.requestContent = request.content().array().clone();
+
+        ByteBuf content = request.content().copy();
+        byte[] data = new byte[content.readableBytes()];
+        content.readBytes(data);
+        requestParameters.requestContent = data;
+
         requestParameters.httpMethod = request.getMethod().toString();
 
         return requestParameters;

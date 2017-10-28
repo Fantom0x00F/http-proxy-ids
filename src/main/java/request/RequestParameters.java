@@ -17,6 +17,22 @@ public class RequestParameters implements Serializable {
         this.uri = uri;
     }
 
+    public String getUri() {
+        return uri;
+    }
+
+    public List<String> getParams() {
+        return params;
+    }
+
+    public byte[] getRequestContent() {
+        return requestContent;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
     @Override
     public String toString() {
         return "RequestParameters{" +
@@ -25,5 +41,25 @@ public class RequestParameters implements Serializable {
                 ", requestContent=" + Arrays.toString(requestContent) +
                 ", httpMethod='" + httpMethod + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RequestParameters that = (RequestParameters) o;
+
+        return uri.equals(that.uri) &&
+                params.equals(that.params) &&
+                httpMethod.equals(that.httpMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = uri.hashCode();
+        result = 31 * result + params.hashCode();
+        result = 31 * result + httpMethod.hashCode();
+        return result;
     }
 }

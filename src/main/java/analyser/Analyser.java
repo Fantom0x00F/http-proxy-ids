@@ -6,35 +6,37 @@ import response.ResponseData;
 import statistic.ResponseStatisticRow;
 import statistic.StatisticExtractor;
 import storage.IStatisticStorage;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import java.util.List;
 
 public class Analyser {
 
-    private AnalyserMode analyserMode = AnalyserMode.ACTION;
+    private static final int REQUIRED_REQUESTS_FOR_STATISTIC = 10;
+
     private IStatisticStorage statisticStorage;
     private INotificator alertNotificator;
 
-    public synchronized void processRequest(RequestParameters requestParameters, ResponseData responseData) {
+    public synchronized boolean processRequest(RequestParameters requestParameters, ResponseData responseData) {
         ResponseStatisticRow information = StatisticExtractor.getInformation(responseData);
-        if (analyserMode == AnalyserMode.TRAINING) {
+
+        List<ResponseStatisticRow> statistic = statisticStorage.getStatistic(requestParameters);
+        if (statistic.size() < REQUIRED_REQUESTS_FOR_STATISTIC) {
+            alertNotificator.info("Request " + requestParameters +
+                    " processed as trained request " + (statistic.size() + 1) +
+                    "/" + REQUIRED_REQUESTS_FOR_STATISTIC);
             statisticStorage.save(requestParameters, information);
-            return;
+
+            if (statistic.size() >= REQUIRED_REQUESTS_FOR_STATISTIC) {
+                alertNotificator.info("Fully trained for " + requestParameters);
+            }
+            return true;
         }
 
-        if (criticalDeviationDetected(requestParameters, information)) {
-            alertNotificator.error("Alert");
+        if (criticalDeviationDetected(statistic, information)) {
+            alertNotificator.error("Anomaly detected by " + requestParameters);
+            return false;
         }
-    }
-
-    public synchronized void startTraining() {
-        statisticStorage.clear();
-        analyserMode = AnalyserMode.TRAINING;
-        alertNotificator.info("Training started");
-    }
-
-    public synchronized void stopTraining() {
-        analyserMode = AnalyserMode.ACTION;
-        alertNotificator.info("Training completed");
+        return true;
     }
 
     public void setStatisticStorage(IStatisticStorage statisticStorage) {
@@ -45,9 +47,8 @@ public class Analyser {
         this.alertNotificator = alertNotificator;
     }
 
-
-    private boolean criticalDeviationDetected(RequestParameters request, ResponseStatisticRow statisticChunk) {
-        throw new NotImplementedException();
+    private boolean criticalDeviationDetected(List<ResponseStatisticRow> statistic, ResponseStatisticRow statisticChunk) {
+        return !statistic.contains(statisticChunk);
     }
 
 }
