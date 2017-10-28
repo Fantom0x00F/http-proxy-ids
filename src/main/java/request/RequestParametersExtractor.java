@@ -5,6 +5,8 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -13,10 +15,13 @@ public final class RequestParametersExtractor {
     private RequestParametersExtractor() {
     }
 
-    public static RequestParameters extract(FullHttpRequest request) {
-        RequestParameters requestParameters = new RequestParameters(request.getUri());
+    public static RequestParameters extract(FullHttpRequest request) throws URISyntaxException {
+        String uri = request.getUri();
+        URI urica = new URI(uri);
 
-        List<NameValuePair> params = URLEncodedUtils.parse(request.getUri(), Charset.forName("UTF-8"));
+        RequestParameters requestParameters = new RequestParameters(urica.getPath());
+
+        List<NameValuePair> params = URLEncodedUtils.parse(urica, Charset.forName("UTF-8"));
 
         for (NameValuePair param : params) {
             requestParameters.params.add(param.getName());

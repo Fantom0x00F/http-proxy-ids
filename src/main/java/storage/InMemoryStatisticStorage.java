@@ -33,12 +33,12 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
 
     private class Key {
 
-        final String uri;
+        final String path;
         final String httpMethod;
         final List<String> params;
 
         Key(RequestParameters requestParameters) {
-            this.uri = requestParameters.getUri();
+            this.path = requestParameters.getPath();
             this.httpMethod = requestParameters.getHttpMethod();
             this.params = Collections.unmodifiableList(requestParameters.getParams());
         }
@@ -50,14 +50,14 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
 
             Key key = (Key) o;
 
-            return uri.equals(key.uri) &&
+            return path.equals(key.path) &&
                     httpMethod.equals(key.httpMethod) &&
                     params.equals(key.params);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(uri, httpMethod, params);
+            return Objects.hash(path, httpMethod, params);
         }
     }
 }

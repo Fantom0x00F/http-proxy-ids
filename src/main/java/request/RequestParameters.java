@@ -7,26 +7,22 @@ import java.util.List;
 
 public class RequestParameters implements Serializable {
 
-    final String uri;
+    private final String path;
 
-    List<String> params = new ArrayList<String>();
+    List<String> params = new ArrayList<>();
     byte[] requestContent;
     String httpMethod;
 
-    RequestParameters(String uri) {
-        this.uri = uri;
+    RequestParameters(String path) {
+        this.path = path;
     }
 
-    public String getUri() {
-        return uri;
+    public String getPath() {
+        return path;
     }
 
     public List<String> getParams() {
         return params;
-    }
-
-    public byte[] getRequestContent() {
-        return requestContent;
     }
 
     public String getHttpMethod() {
@@ -36,7 +32,7 @@ public class RequestParameters implements Serializable {
     @Override
     public String toString() {
         return "RequestParameters{" +
-                "uri='" + uri + '\'' +
+                "path='" + path + '\'' +
                 ", params=" + params +
                 ", requestContent=" + Arrays.toString(requestContent) +
                 ", httpMethod='" + httpMethod + '\'' +
@@ -50,14 +46,14 @@ public class RequestParameters implements Serializable {
 
         RequestParameters that = (RequestParameters) o;
 
-        return uri.equals(that.uri) &&
+        return path.equals(that.path) &&
                 params.equals(that.params) &&
                 httpMethod.equals(that.httpMethod);
     }
 
     @Override
     public int hashCode() {
-        int result = uri.hashCode();
+        int result = path.hashCode();
         result = 31 * result + params.hashCode();
         result = 31 * result + httpMethod.hashCode();
         return result;
