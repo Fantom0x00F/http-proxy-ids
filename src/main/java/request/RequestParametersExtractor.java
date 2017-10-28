@@ -1,8 +1,11 @@
 package request;
 
 import io.netty.handler.codec.http.FullHttpRequest;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 
-import java.util.Map;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public final class RequestParametersExtractor {
 
@@ -12,8 +15,10 @@ public final class RequestParametersExtractor {
     public static RequestParameters extract(FullHttpRequest request) {
         RequestParameters requestParameters = new RequestParameters(request.getUri());
 
-        for (Map.Entry<String, String> header : request.headers()) {
-            requestParameters.headers.add(header.getKey() + " " + header.getValue());
+        List<NameValuePair> params = URLEncodedUtils.parse(request.getUri(), Charset.forName("UTF-8"));
+
+        for (NameValuePair param : params) {
+            requestParameters.params.add(param.getName());
         }
 
         requestParameters.requestContent = request.content().array().clone();

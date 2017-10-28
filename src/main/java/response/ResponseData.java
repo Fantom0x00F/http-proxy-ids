@@ -1,12 +1,9 @@
 package response;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class ResponseData {
     public int responseCode;
-    public List<String> headers = new ArrayList<String>();
 
     public String contentType = "raw";
     public byte[] responseContent;
@@ -15,7 +12,6 @@ public class ResponseData {
     public String toString() {
         return "ResponseData{" +
                 "responseCode=" + responseCode +
-                ", headers=" + headers +
                 ", contentType='" + contentType + '\'' +
                 ", responseContent=" + getResponsePresentation() +
                 '}';

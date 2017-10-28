@@ -3,8 +3,6 @@ package response;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpResponse;
 
-import java.util.Map;
-
 public final class ResponseDataExtractor {
 
     private ResponseDataExtractor() {
@@ -12,10 +10,6 @@ public final class ResponseDataExtractor {
 
     public static ResponseData extract(FullHttpResponse response) {
         ResponseData responseData = new ResponseData();
-
-        for (Map.Entry<String, String> header : response.headers()) {
-            responseData.headers.add(header.getKey() + " " + header.getValue());
-        }
 
         responseData.responseCode = response.getStatus().code();
 

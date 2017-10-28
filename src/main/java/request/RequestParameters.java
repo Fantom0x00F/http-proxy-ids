@@ -9,7 +9,7 @@ public class RequestParameters implements Serializable {
 
     final String uri;
 
-    List<String> headers = new ArrayList<String>();
+    List<String> params = new ArrayList<String>();
     byte[] requestContent;
     String httpMethod;
 
@@ -21,7 +21,7 @@ public class RequestParameters implements Serializable {
     public String toString() {
         return "RequestParameters{" +
                 "uri='" + uri + '\'' +
-                ", headers=" + headers +
+                ", params=" + params +
                 ", requestContent=" + Arrays.toString(requestContent) +
                 ", httpMethod='" + httpMethod + '\'' +
                 '}';

@@ -12,7 +12,6 @@ public class StatisticExtractor {
         ResponseStatisticRow chunk = new ResponseStatisticRow();
         chunk.responseCode = responseData.responseCode;
         chunk.responseSize = responseData.responseContent.length;
-        chunk.headersCount = responseData.headers.size();
 
         if (responseData.contentType.startsWith("text/html")) {
             try {

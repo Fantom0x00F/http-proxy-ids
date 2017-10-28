@@ -1,9 +1,9 @@
 package statistic;
 
 public class ResponseStatisticRow {
+
     int responseCode = -1;
     int responseSize = -1;
-    int headersCount = -1;
     int htmlTagsCount = -1;
 
     @Override
@@ -11,7 +11,6 @@ public class ResponseStatisticRow {
         return "ResponseStatisticRow{" +
                 "responseCode=" + responseCode +
                 ", responseSize=" + responseSize +
-                ", headersCount=" + headersCount +
                 ", htmlTagsCount=" + htmlTagsCount +
                 '}';
     }
