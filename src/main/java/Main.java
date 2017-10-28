@@ -1,7 +1,12 @@
 import analyser.Analyser;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import org.littleshoot.proxy.*;
+import org.littleshoot.proxy.ChainedProxyAdapter;
+import org.littleshoot.proxy.HttpFilters;
+import org.littleshoot.proxy.HttpFiltersAdapter;
+import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.mitm.RootCertificateException;
 import request.RequestParameters;
@@ -10,13 +15,18 @@ import response.ResponseDataExtractor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
-    private static final String BACKEND_HOST = "contest.uni-smr.ac.ru";
-    private static final int BACKEND_PORT = 80;
+    @Parameter(names = {"--backendHost", "-bH"}, description = "Back host", required = true)
+    private String BACKEND_HOST = "contest.uni-smr.ac.ru";
+
+    @Parameter(names = {"--backendPort", "-bP"}, description = "Back port", required = true)
+    private int BACKEND_PORT = 80;
+
+    @Parameter(names = {"--port", "-p"}, description = "Used port")
+    private int PORT = 8080;
 
     private static final int MAXIMUM_REQUEST_SIZE_IN_BYTES = 10 * 1024 * 1024;
     private static final int MAXIMUM_RESPONSE_SIZE_IN_BYTES = 10 * 1024 * 1024;
@@ -24,20 +34,25 @@ public class Main {
     private static AtomicInteger trainingRequestsCount = new AtomicInteger(0);
 
     public static void main(String[] args) throws IOException, RootCertificateException {
+        Main main = new Main();
+        JCommander.newBuilder()
+                .addObject(main)
+                .build()
+                .parse(args);
+        main.run();
+    }
+
+    private void run() {
         final Analyser analyser = new Analyser();
 
         DefaultHttpProxyServer.bootstrap()
-                .withPort(8880)
-                .withChainProxyManager(new ChainedProxyManager() {
-                    public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
-                        chainedProxies.add(new ChainedProxyAdapter() {
-                            @Override
-                            public InetSocketAddress getChainedProxyAddress() {
-                                return new InetSocketAddress(BACKEND_HOST, BACKEND_PORT);
-                            }
-                        });
+                .withPort(PORT)
+                .withChainProxyManager((httpRequest, chainedProxies) -> chainedProxies.add(new ChainedProxyAdapter() {
+                    @Override
+                    public InetSocketAddress getChainedProxyAddress() {
+                        return new InetSocketAddress(BACKEND_HOST, BACKEND_PORT);
                     }
-                })
+                }))
                 .withAllowLocalOnly(false)
                 .withAllowRequestToOriginServer(true)
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
