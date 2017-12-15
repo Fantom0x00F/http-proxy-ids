@@ -4,16 +4,18 @@ import com.beust.jcommander.Parameter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import notification.CommandLineNotification;
+import org.jooq.SQLDialect;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
-import org.littleshoot.proxy.mitm.RootCertificateException;
-import storage.InMemoryStatisticStorage;
+import storage.IStatisticStorage;
+import storage.PersistentStatisticStorage;
 import watcher.WatcherFilter;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.function.Function;
 
 public class Main {
@@ -30,7 +32,7 @@ public class Main {
     private static final int MAXIMUM_REQUEST_SIZE_IN_BYTES = 10 * 1024 * 1024;
     private static final int MAXIMUM_RESPONSE_SIZE_IN_BYTES = 10 * 1024 * 1024;
 
-    public static void main(String[] args) throws IOException, RootCertificateException {
+    public static void main(String[] args) throws Exception {
         Main main = new Main();
         JCommander.newBuilder()
                 .addObject(main)
@@ -39,12 +41,24 @@ public class Main {
         main.run();
     }
 
-    private void run() {
+    private void run() throws Exception {
         final Analyser analyser = new Analyser();
         analyser.setAlertNotificator(new CommandLineNotification());
-        analyser.setStatisticStorage(new InMemoryStatisticStorage());
+        analyser.setStatisticStorage(buildStatisticStorage());
 
         startServer((request) -> new WatcherFilter(analyser, request));
+    }
+
+    private IStatisticStorage buildStatisticStorage() throws Exception {
+        String user = System.getProperty("jdbc.user");
+        String password = System.getProperty("jdbc.password");
+        String url = System.getProperty("jdbc.url");
+        String driver = System.getProperty("jdbc.driver");
+
+        Class.forName(driver).newInstance();
+        Connection connection = DriverManager.getConnection(url, user, password);
+
+        return new PersistentStatisticStorage(connection, SQLDialect.MYSQL);
     }
 
 

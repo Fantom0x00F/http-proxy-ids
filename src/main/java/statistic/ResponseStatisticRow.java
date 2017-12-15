@@ -2,9 +2,15 @@ package statistic;
 
 public class ResponseStatisticRow {
 
-    int responseCode = -1;
-    int responseSize = -1;
-    int htmlTagsCount = -1;
+    public final int responseCode;
+    public final int responseSize;
+    public final int htmlTagsCount;
+
+    public ResponseStatisticRow(int responseCode, int responseSize, int htmlTagsCount) {
+        this.responseCode = responseCode;
+        this.responseSize = responseSize;
+        this.htmlTagsCount = htmlTagsCount;
+    }
 
     @Override
     public String toString() {

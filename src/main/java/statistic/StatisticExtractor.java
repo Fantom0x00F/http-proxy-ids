@@ -9,18 +9,15 @@ import static statistic.HtmlTagsCounter.calculateTagsCount;
 public class StatisticExtractor {
 
     public static ResponseStatisticRow getInformation(ResponseData responseData) {
-        ResponseStatisticRow chunk = new ResponseStatisticRow();
-        chunk.responseCode = responseData.responseCode;
-        chunk.responseSize = responseData.responseContent.length;
-
+        int htmlTagsCount = -1;
         if (responseData.contentType.startsWith("text/html")) {
             try {
-                chunk.htmlTagsCount = calculateTagsCount(new String(responseData.responseContent, "UTF-8"));
+                htmlTagsCount = calculateTagsCount(new String(responseData.responseContent, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         }
-        return chunk;
+        return new ResponseStatisticRow(responseData.responseCode, responseData.responseContent.length, htmlTagsCount);
     }
 
 }
