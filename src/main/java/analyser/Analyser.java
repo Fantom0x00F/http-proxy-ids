@@ -19,12 +19,12 @@ public class Analyser {
     public synchronized boolean processRequest(RequestParameters requestParameters, ResponseData responseData) {
         ResponseStatisticRow information = StatisticExtractor.getInformation(responseData);
 
-        List<ResponseStatisticRow> statistic = statisticStorage.getStatistic(requestParameters);
+        List<ResponseStatisticRow> statistic = statisticStorage.getLearnChunk(requestParameters);
         if (statistic.size() < REQUIRED_REQUESTS_FOR_STATISTIC) {
             alertNotificator.info("Request " + requestParameters +
                     " processed as trained request " + (statistic.size() + 1) +
                     "/" + REQUIRED_REQUESTS_FOR_STATISTIC);
-            statisticStorage.save(requestParameters, information);
+            statisticStorage.saveLearnChunk(requestParameters, information);
 
             if (statistic.size() >= REQUIRED_REQUESTS_FOR_STATISTIC) {
                 alertNotificator.info("Fully trained for " + requestParameters);

@@ -1,6 +1,9 @@
 package storage;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import request.RequestParameters;
+import statistic.Measurement;
 import statistic.ResponseStatisticRow;
 
 import java.util.ArrayList;
@@ -13,22 +16,70 @@ import java.util.concurrent.ConcurrentMap;
 public class InMemoryStatisticStorage implements IStatisticStorage {
 
     private ConcurrentMap<Key, List<ResponseStatisticRow>> statistic = new ConcurrentHashMap<>();
+    private ConcurrentMap<Key, List<Pair<Integer, Double>>> responseCodeDistribution = new ConcurrentHashMap<>();
+    private ConcurrentMap<Key, Pair<Double, Double>> responseSizeDistributionParams = new ConcurrentHashMap<>();
+    private ConcurrentMap<Key, Pair<Double, Double>> tagsCountDistributionParams = new ConcurrentHashMap<>();
 
     @Override
-    public void save(RequestParameters requestParameters, ResponseStatisticRow data) {
-        Key key = new Key(requestParameters);
+    public void saveLearnChunk(RequestParameters requestParameters, ResponseStatisticRow data) {
+        Key key = key(requestParameters);
         statistic.putIfAbsent(key, new ArrayList<>());
         statistic.get(key).add(data);
     }
 
     @Override
-    public List<ResponseStatisticRow> getStatistic(RequestParameters requestParameters) {
-        return statistic.getOrDefault(new Key(requestParameters), Collections.emptyList());
+    public List<ResponseStatisticRow> getLearnChunk(RequestParameters requestParameters) {
+        return statistic.getOrDefault(key(requestParameters), Collections.emptyList());
     }
 
     @Override
-    public void clear() {
-        statistic.clear();
+    public void eraseLearnChunks(RequestParameters requestParameters) {
+        statistic.put(key(requestParameters), new ArrayList<>());
+    }
+
+    @Override
+    public int learnChunksCount(RequestParameters requestParameters) {
+        return statistic.getOrDefault(requestParameters, Collections.emptyList()).size();
+    }
+
+    @Override
+    public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> deviation) {
+        responseCodeDistribution.put(key(requestParameters), new ArrayList<>(deviation));
+    }
+
+    @Override
+    public List<Pair<Integer, Double>> getDiscreteDistribution(Measurement measurement, RequestParameters requestParameters) {
+        return responseCodeDistribution.getOrDefault(key(requestParameters), Collections.emptyList());
+    }
+
+    @Override
+    public void saveDistributionParameters(Measurement measurement, RequestParameters requestParameters, double mathExpectation, double variance) {
+        switch (measurement) {
+            case RESPONSE_SIZE:
+                responseSizeDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
+                break;
+            case HTML_TAGS_COUNT:
+                tagsCountDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown distribution " + measurement);
+        }
+    }
+
+    @Override
+    public Pair<Double, Double> getDistributionParameters(Measurement measurement, RequestParameters requestParameters) {
+        switch (measurement) {
+            case RESPONSE_SIZE:
+                return responseSizeDistributionParams.get(key(requestParameters));
+            case HTML_TAGS_COUNT:
+                return tagsCountDistributionParams.get(key(requestParameters));
+            default:
+                throw new UnsupportedOperationException("Unknown distribution " + measurement);
+        }
+    }
+
+    private Key key(RequestParameters requestParameters) {
+        return new Key(requestParameters);
     }
 
     private class Key {
