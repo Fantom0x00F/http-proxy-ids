@@ -43,8 +43,8 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
     }
 
     @Override
-    public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> deviation) {
-        responseCodeDistribution.put(key(requestParameters), new ArrayList<>(deviation));
+    public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> distribution) {
+        responseCodeDistribution.put(key(requestParameters), new ArrayList<>(distribution));
     }
 
     @Override

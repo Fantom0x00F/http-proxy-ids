@@ -64,9 +64,9 @@ public class PersistentStatisticStorage implements IStatisticStorage {
     }
 
     @Override
-    public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> deviation) {
+    public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> distribution) {
         final String key = zipParameters(requestParameters);
-        final List<ResponseCodeDistributionRecord> values = deviation.stream().map(v -> new ResponseCodeDistributionRecord(key, v.getKey(), v.getValue())).collect(Collectors.toList());
+        final List<ResponseCodeDistributionRecord> values = distribution.stream().map(v -> new ResponseCodeDistributionRecord(key, v.getKey(), v.getValue())).collect(Collectors.toList());
         dslContext.insertInto(RESPONSE_CODE_DISTRIBUTION).values(values).executeAsync();
     }
 

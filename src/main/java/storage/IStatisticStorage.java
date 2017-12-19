@@ -17,7 +17,7 @@ public interface IStatisticStorage {
 
     int learnChunksCount(RequestParameters requestParameters);
 
-    void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> deviation);
+    void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> distribution);
 
     List<Pair<Integer, Double>> getDiscreteDistribution(Measurement measurement, RequestParameters requestParameters);
 
