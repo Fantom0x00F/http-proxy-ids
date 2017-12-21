@@ -72,7 +72,7 @@ public class PersistentStatisticStorage implements IStatisticStorage {
 
     @Override
     public List<Pair<Integer, Double>> getDiscreteDistribution(Measurement measurement, RequestParameters requestParameters) {
-        if (!measurement.equals(Measurement.RESPONSE_CODE)) {
+        if (!measurement.equals(Measurement.response_code)) {
             throw new UnsupportedOperationException("Unknown discrete distribution " + measurement);
         }
 
@@ -89,12 +89,12 @@ public class PersistentStatisticStorage implements IStatisticStorage {
     public void saveDistributionParameters(Measurement measurement, RequestParameters requestParameters, double mathExpectation, double variance) {
         final String key = zipParameters(requestParameters);
         switch (measurement) {
-            case RESPONSE_SIZE:
+            case response_size:
                 dslContext.insertInto(RESPONSE_SIZE_DISTRIBUTION)
                         .values(new ResponseSizeDistributionRecord(key, mathExpectation, variance))
                         .executeAsync();
                 break;
-            case HTML_TAGS_COUNT:
+            case html_tags_count:
                 dslContext.insertInto(TAGS_COUNT_DISTRIBUTION)
                         .values(new TagsCountDistributionRecord(key, mathExpectation, variance))
                         .executeAsync();
@@ -107,12 +107,12 @@ public class PersistentStatisticStorage implements IStatisticStorage {
     @Override
     public Pair<Double, Double> getDistributionParameters(Measurement measurement, RequestParameters requestParameters) {
         switch (measurement) {
-            case RESPONSE_SIZE:
+            case response_size:
                 ResponseSizeDistributionRecord res1 = dslContext.selectFrom(RESPONSE_SIZE_DISTRIBUTION)
                         .where(RESPONSE_SIZE_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
                         .fetchOne();
                 return new ImmutablePair<>(res1.getMathExpectation(), res1.getVariance());
-            case HTML_TAGS_COUNT:
+            case html_tags_count:
                 TagsCountDistributionRecord res2 = dslContext.selectFrom(TAGS_COUNT_DISTRIBUTION)
                         .where(TAGS_COUNT_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
                         .fetchOne();

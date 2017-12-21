@@ -1,0 +1,13 @@
+port: 8080
+backend_host: contest.uni-smr.ac.ru
+backend_port: 80
+
+database:
+  connection_url: jdbc:mysql://localhost:3306/reverse-proxy
+  user: dev
+  password: dev1
+
+thresholds:
+  response_code: 0.5
+  response_size: 0.5
+  html_tags_count: 0.5

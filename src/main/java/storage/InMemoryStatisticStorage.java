@@ -55,10 +55,10 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
     @Override
     public void saveDistributionParameters(Measurement measurement, RequestParameters requestParameters, double mathExpectation, double variance) {
         switch (measurement) {
-            case RESPONSE_SIZE:
+            case response_size:
                 responseSizeDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
                 break;
-            case HTML_TAGS_COUNT:
+            case html_tags_count:
                 tagsCountDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
                 break;
             default:
@@ -69,9 +69,9 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
     @Override
     public Pair<Double, Double> getDistributionParameters(Measurement measurement, RequestParameters requestParameters) {
         switch (measurement) {
-            case RESPONSE_SIZE:
+            case response_size:
                 return responseSizeDistributionParams.get(key(requestParameters));
-            case HTML_TAGS_COUNT:
+            case html_tags_count:
                 return tagsCountDistributionParams.get(key(requestParameters));
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);

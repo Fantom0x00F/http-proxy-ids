@@ -1,6 +1,9 @@
 import analyser.Analyser;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import configuration.Configuration;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import notification.CommandLineNotification;
@@ -13,6 +16,8 @@ import storage.IStatisticStorage;
 import storage.PersistentStatisticStorage;
 import watcher.WatcherFilter;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,14 +25,10 @@ import java.util.function.Function;
 
 public class Main {
 
-    @Parameter(names = {"--backendHost", "-bH"}, description = "Back host", required = true)
-    private String BACKEND_HOST = "contest.uni-smr.ac.ru";
+    @Parameter(names = {"--configFile", "-cF"}, description = "Configuration file path", required = true)
+    private String configurationFilePath = null;
 
-    @Parameter(names = {"--backendPort", "-bP"}, description = "Back port", required = true)
-    private int BACKEND_PORT = 80;
-
-    @Parameter(names = {"--port", "-p"}, description = "Used port")
-    private int PORT = 8080;
+    private Configuration configuration;
 
     private static final int MAXIMUM_REQUEST_SIZE_IN_BYTES = 10 * 1024 * 1024;
     private static final int MAXIMUM_RESPONSE_SIZE_IN_BYTES = 10 * 1024 * 1024;
@@ -42,18 +43,21 @@ public class Main {
     }
 
     private void run() throws Exception {
+        readConfiguration();
+
         final Analyser analyser = new Analyser();
         analyser.setAlertNotificator(new CommandLineNotification());
         analyser.setStatisticStorage(buildStatisticStorage());
+        analyser.setThresholds(configuration.getThresholds());
 
         startServer((request) -> new WatcherFilter(analyser, request));
     }
 
     private IStatisticStorage buildStatisticStorage() throws Exception {
-        String user = System.getProperty("jdbc.user");
-        String password = System.getProperty("jdbc.password");
-        String url = System.getProperty("jdbc.url");
-        String driver = System.getProperty("jdbc.driver");
+        String user = configuration.getDatabase().getUser();
+        String password = configuration.getDatabase().getPassword();
+        String url = configuration.getDatabase().getConnection_url();
+        String driver = "com.mysql.cj.jdbc.Driver";
 
         Class.forName(driver).newInstance();
         Connection connection = DriverManager.getConnection(url, user, password);
@@ -64,11 +68,11 @@ public class Main {
 
     private void startServer(Function<HttpRequest, HttpFilters> filterBuilder) {
         DefaultHttpProxyServer.bootstrap()
-                .withPort(PORT)
+                .withPort(configuration.getPort())
                 .withChainProxyManager((httpRequest, chainedProxies) -> chainedProxies.add(new ChainedProxyAdapter() {
                     @Override
                     public InetSocketAddress getChainedProxyAddress() {
-                        return new InetSocketAddress(BACKEND_HOST, BACKEND_PORT);
+                        return new InetSocketAddress(configuration.getBackend_host(), configuration.getBackend_port());
                     }
                 }))
                 .withAllowLocalOnly(false)
@@ -90,6 +94,11 @@ public class Main {
                     }
                 })
                 .start();
+    }
+
+    private void readConfiguration() throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        configuration = mapper.readValue(new File(configurationFilePath), Configuration.class);
     }
 
 }

@@ -61,19 +61,19 @@ public class Analyser {
 
     private boolean criticalDeviationDetected(RequestParameters requestParameters, ResponseStatisticRow statisticChunk) {
         boolean violation;
-        Double respCodeProbability = statisticStorage.getDiscreteDistribution(Measurement.RESPONSE_CODE, requestParameters)
+        Double respCodeProbability = statisticStorage.getDiscreteDistribution(Measurement.response_code, requestParameters)
                 .stream().filter(it -> it.getLeft() == statisticChunk.responseCode).findFirst().get().getRight();
-        violation = ProbabilityChecker.violateByThreshold(respCodeProbability, thresholds.get(Measurement.RESPONSE_CODE));
+        violation = ProbabilityChecker.violateByThreshold(respCodeProbability, thresholds.get(Measurement.response_code));
         if (violation) return true;
 
-        Pair<Double, Double> params = statisticStorage.getDistributionParameters(Measurement.RESPONSE_SIZE, requestParameters);
+        Pair<Double, Double> params = statisticStorage.getDistributionParameters(Measurement.response_size, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.responseSize / RESPONSE_SIZE_MEASURE_SINGLE_RANGE_WIDTH,
-                params.getLeft(), params.getRight(), thresholds.get(Measurement.RESPONSE_SIZE));
+                params.getLeft(), params.getRight(), thresholds.get(Measurement.response_size));
         if (violation) return true;
 
-        Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.HTML_TAGS_COUNT, requestParameters);
+        Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.html_tags_count, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.htmlTagsCount,
-                tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.HTML_TAGS_COUNT));
+                tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.html_tags_count));
 
         return violation;
     }
@@ -81,13 +81,13 @@ public class Analyser {
     private void afterTrained(RequestParameters requestParameters) {
         List<ResponseStatisticRow> learnData = statisticStorage.getLearnChunk(requestParameters);
         List<Pair<Integer, Double>> respCodeDistribution = ProbabilityCalculator.getDistribution(learnData.stream().map(row -> row.responseCode).collect(Collectors.toList()));
-        statisticStorage.saveDiscreteDistribution(Measurement.RESPONSE_CODE, requestParameters, respCodeDistribution);
+        statisticStorage.saveDiscreteDistribution(Measurement.response_code, requestParameters, respCodeDistribution);
 
         Pair<Double, Double> respSizeDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.responseSize / RESPONSE_SIZE_MEASURE_SINGLE_RANGE_WIDTH).collect(Collectors.toList()));
-        statisticStorage.saveDistributionParameters(Measurement.RESPONSE_SIZE, requestParameters, respSizeDisParams.getLeft(), respSizeDisParams.getRight());
+        statisticStorage.saveDistributionParameters(Measurement.response_size, requestParameters, respSizeDisParams.getLeft(), respSizeDisParams.getRight());
 
         Pair<Double, Double> tagsCountDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.htmlTagsCount).collect(Collectors.toList()));
-        statisticStorage.saveDistributionParameters(Measurement.HTML_TAGS_COUNT, requestParameters, tagsCountDisParams.getLeft(), tagsCountDisParams.getRight());
+        statisticStorage.saveDistributionParameters(Measurement.html_tags_count, requestParameters, tagsCountDisParams.getLeft(), tagsCountDisParams.getRight());
     }
 
 }

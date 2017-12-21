@@ -1,7 +1,7 @@
 package statistic;
 
 public enum Measurement {
-    RESPONSE_CODE,
-    RESPONSE_SIZE,
-    HTML_TAGS_COUNT
+    response_code,
+    response_size,
+    html_tags_count
 }
