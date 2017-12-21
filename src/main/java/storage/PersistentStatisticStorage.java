@@ -9,6 +9,7 @@ import org.jooq.impl.DSL;
 import request.RequestParameters;
 import statistic.Measurement;
 import statistic.ResponseStatisticRow;
+import storage.entities.reverse_proxy.tables.records.LatencyDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.ResponseCodeDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.ResponseSizeDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.TagsCountDistributionRecord;
@@ -34,18 +35,20 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                 .columns(LEARN_STATISTIC.REQUEST,
                         LEARN_STATISTIC.CODE,
                         LEARN_STATISTIC.SIZE,
-                        LEARN_STATISTIC.HTML_TAGS_COUNT)
+                        LEARN_STATISTIC.HTML_TAGS_COUNT,
+                        LEARN_STATISTIC.LATENCY)
                 .values(zipParameters(requestParameters),
                         data.responseCode,
                         data.responseSize,
-                        data.htmlTagsCount)
+                        data.htmlTagsCount,
+                        data.latencyInSec)
                 .execute();
     }
 
     @Override
     public List<ResponseStatisticRow> getLearnChunk(RequestParameters requestParameters) {
         return Arrays.stream(dslContext.selectFrom(LEARN_STATISTIC).fetchArray())
-                .map(stRecord -> new ResponseStatisticRow(stRecord.getCode(), stRecord.getSize(), stRecord.getHtmlTagsCount()))
+                .map(stRecord -> new ResponseStatisticRow(stRecord.getCode(), stRecord.getSize(), stRecord.getHtmlTagsCount(), stRecord.getLatency()))
                 .collect(Collectors.toList());
     }
 
@@ -99,6 +102,11 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                         .values(new TagsCountDistributionRecord(key, mathExpectation, variance))
                         .executeAsync();
                 break;
+            case latency:
+                dslContext.insertInto(LATENCY_DISTRIBUTION)
+                        .values(new LatencyDistributionRecord(key, mathExpectation, variance))
+                        .executeAsync();
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);
         }
@@ -117,6 +125,11 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                         .where(TAGS_COUNT_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
                         .fetchOne();
                 return new ImmutablePair<>(res2.getMathExpectation(), res2.getVariance());
+            case latency:
+                LatencyDistributionRecord res3 = dslContext.selectFrom(LATENCY_DISTRIBUTION)
+                        .where(LATENCY_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
+                        .fetchOne();
+                return new ImmutablePair<>(res3.getMathExpectation(), res3.getVariance());
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);
         }

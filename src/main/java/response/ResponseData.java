@@ -7,6 +7,7 @@ public class ResponseData {
 
     public String contentType = "raw";
     public byte[] responseContent;
+    public int latencyInSec;
 
     @Override
     public String toString() {
@@ -14,6 +15,7 @@ public class ResponseData {
                 "responseCode=" + responseCode +
                 ", contentType='" + contentType + '\'' +
                 ", responseContent=" + getResponsePresentation() +
+                ", latencyInSec=" + latencyInSec +
                 '}';
     }
 

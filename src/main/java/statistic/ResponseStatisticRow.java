@@ -5,20 +5,13 @@ public class ResponseStatisticRow {
     public final int responseCode;
     public final int responseSize;
     public final int htmlTagsCount;
+    public final int latencyInSec;
 
-    public ResponseStatisticRow(int responseCode, int responseSize, int htmlTagsCount) {
+    public ResponseStatisticRow(int responseCode, int responseSize, int htmlTagsCount, int latencyInSec) {
         this.responseCode = responseCode;
         this.responseSize = responseSize;
         this.htmlTagsCount = htmlTagsCount;
-    }
-
-    @Override
-    public String toString() {
-        return "ResponseStatisticRow{" +
-                "responseCode=" + responseCode +
-                ", responseSize=" + responseSize +
-                ", htmlTagsCount=" + htmlTagsCount +
-                '}';
+        this.latencyInSec = latencyInSec;
     }
 
     @Override
@@ -30,7 +23,8 @@ public class ResponseStatisticRow {
 
         return responseCode == that.responseCode &&
                 responseSize == that.responseSize &&
-                htmlTagsCount == that.htmlTagsCount;
+                htmlTagsCount == that.htmlTagsCount &&
+                latencyInSec == that.latencyInSec;
     }
 
     @Override
@@ -38,6 +32,7 @@ public class ResponseStatisticRow {
         int result = responseCode;
         result = 31 * result + responseSize;
         result = 31 * result + htmlTagsCount;
+        result = 31 * result + latencyInSec;
         return result;
     }
 }

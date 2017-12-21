@@ -74,6 +74,11 @@ public class Analyser {
         Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.html_tags_count, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.htmlTagsCount,
                 tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.html_tags_count));
+        if (violation) return true;
+
+        Pair<Double, Double> latencyParams = statisticStorage.getDistributionParameters(Measurement.latency, requestParameters);
+        violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.latencyInSec,
+                latencyParams.getLeft(), latencyParams.getRight(), thresholds.get(Measurement.latency));
 
         return violation;
     }
@@ -88,6 +93,9 @@ public class Analyser {
 
         Pair<Double, Double> tagsCountDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.htmlTagsCount).collect(Collectors.toList()));
         statisticStorage.saveDistributionParameters(Measurement.html_tags_count, requestParameters, tagsCountDisParams.getLeft(), tagsCountDisParams.getRight());
+
+        Pair<Double, Double> latencyDisParams = ProbabilityCalculator.getNormalDistributionParameters(learnData.stream().map(row -> row.latencyInSec).collect(Collectors.toList()));
+        statisticStorage.saveDistributionParameters(Measurement.latency, requestParameters, latencyDisParams.getLeft(), latencyDisParams.getRight());
     }
 
 }

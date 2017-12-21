@@ -11,3 +11,4 @@ thresholds:
   response_code: 0.5
   response_size: 0.5
   html_tags_count: 0.5
+  latency: 0.5

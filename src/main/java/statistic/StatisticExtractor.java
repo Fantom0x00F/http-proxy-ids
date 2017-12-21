@@ -17,7 +17,10 @@ public class StatisticExtractor {
                 e.printStackTrace();
             }
         }
-        return new ResponseStatisticRow(responseData.responseCode, responseData.responseContent.length, htmlTagsCount);
+        return new ResponseStatisticRow(responseData.responseCode,
+                responseData.responseContent.length,
+                htmlTagsCount,
+                responseData.latencyInSec);
     }
 
 }

@@ -27,4 +27,9 @@ final class ProbabilityCalculator {
         return ImmutablePair.of(mathExpectation, variance);
     }
 
+    static Pair<Double, Double> getNormalDistributionParameters(List<Integer> rawValues) {
+        double mathExpectation = rawValues.stream().mapToInt(r -> r).sum() * 1d / rawValues.size();
+        double variance = rawValues.stream().mapToDouble(r -> (r - mathExpectation) * (r - mathExpectation)).sum() * 1d / (rawValues.size() - 1);
+        return ImmutablePair.of(mathExpectation, variance);
+    }
 }
