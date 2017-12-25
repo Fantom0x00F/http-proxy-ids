@@ -49,6 +49,7 @@ public class Main {
         analyser.setAlertNotificator(new CommandLineNotification());
         analyser.setStatisticStorage(buildStatisticStorage());
         analyser.setThresholds(configuration.getThresholds());
+        analyser.setKeywords(configuration.getKeywords());
 
         startServer((request) -> new WatcherFilter(analyser, request));
     }

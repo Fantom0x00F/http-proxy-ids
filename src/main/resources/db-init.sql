@@ -20,7 +20,7 @@ CREATE TABLE `response-size-distribution` (
   variance         DOUBLE       NOT NULL
 );
 
-CREATE TABLE `tags-count-distribution` (
+CREATE TABLE `keywords-count-distribution` (
   request          VARCHAR(255) NOT NULL,
   math_expectation DOUBLE       NOT NULL,
   variance         DOUBLE       NOT NULL

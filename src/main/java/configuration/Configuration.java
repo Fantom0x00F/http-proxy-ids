@@ -2,6 +2,7 @@ package configuration;
 
 import statistic.Measurement;
 
+import java.util.List;
 import java.util.Map;
 
 public class Configuration {
@@ -12,6 +13,8 @@ public class Configuration {
 
     private DatabaseConfiguration database;
     private Map<Measurement, Double> thresholds;
+
+    private List<String> keywords;
 
     public int getPort() {
         return port;
@@ -51,5 +54,13 @@ public class Configuration {
 
     public void setThresholds(Map<Measurement, Double> thresholds) {
         this.thresholds = thresholds;
+    }
+
+    public List<String> getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(List<String> keywords) {
+        this.keywords = keywords;
     }
 }

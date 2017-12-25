@@ -9,10 +9,10 @@ import org.jooq.impl.DSL;
 import request.RequestParameters;
 import statistic.Measurement;
 import statistic.ResponseStatisticRow;
+import storage.entities.reverse_proxy.tables.records.KeywordsCountDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.LatencyDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.ResponseCodeDistributionRecord;
 import storage.entities.reverse_proxy.tables.records.ResponseSizeDistributionRecord;
-import storage.entities.reverse_proxy.tables.records.TagsCountDistributionRecord;
 
 import java.sql.Connection;
 import java.util.Arrays;
@@ -40,7 +40,7 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                 .values(zipParameters(requestParameters),
                         data.responseCode,
                         data.responseSize,
-                        data.htmlTagsCount,
+                        data.keywordsCount,
                         data.latencyInSec)
                 .execute();
     }
@@ -97,9 +97,9 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                         .values(new ResponseSizeDistributionRecord(key, mathExpectation, variance))
                         .executeAsync();
                 break;
-            case html_tags_count:
-                dslContext.insertInto(TAGS_COUNT_DISTRIBUTION)
-                        .values(new TagsCountDistributionRecord(key, mathExpectation, variance))
+            case keywords_count:
+                dslContext.insertInto(KEYWORDS_COUNT_DISTRIBUTION)
+                        .values(new KeywordsCountDistributionRecord(key, mathExpectation, variance))
                         .executeAsync();
                 break;
             case latency:
@@ -120,9 +120,9 @@ public class PersistentStatisticStorage implements IStatisticStorage {
                         .where(RESPONSE_SIZE_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
                         .fetchOne();
                 return new ImmutablePair<>(res1.getMathExpectation(), res1.getVariance());
-            case html_tags_count:
-                TagsCountDistributionRecord res2 = dslContext.selectFrom(TAGS_COUNT_DISTRIBUTION)
-                        .where(TAGS_COUNT_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
+            case keywords_count:
+                KeywordsCountDistributionRecord res2 = dslContext.selectFrom(KEYWORDS_COUNT_DISTRIBUTION)
+                        .where(KEYWORDS_COUNT_DISTRIBUTION.REQUEST.eq(zipParameters(requestParameters)))
                         .fetchOne();
                 return new ImmutablePair<>(res2.getMathExpectation(), res2.getVariance());
             case latency:

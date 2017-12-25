@@ -4,13 +4,13 @@ public class ResponseStatisticRow {
 
     public final int responseCode;
     public final int responseSize;
-    public final int htmlTagsCount;
+    public final int keywordsCount;
     public final int latencyInSec;
 
-    public ResponseStatisticRow(int responseCode, int responseSize, int htmlTagsCount, int latencyInSec) {
+    public ResponseStatisticRow(int responseCode, int responseSize, int keywordsCount, int latencyInSec) {
         this.responseCode = responseCode;
         this.responseSize = responseSize;
-        this.htmlTagsCount = htmlTagsCount;
+        this.keywordsCount = keywordsCount;
         this.latencyInSec = latencyInSec;
     }
 
@@ -23,7 +23,7 @@ public class ResponseStatisticRow {
 
         return responseCode == that.responseCode &&
                 responseSize == that.responseSize &&
-                htmlTagsCount == that.htmlTagsCount &&
+                keywordsCount == that.keywordsCount &&
                 latencyInSec == that.latencyInSec;
     }
 
@@ -31,7 +31,7 @@ public class ResponseStatisticRow {
     public int hashCode() {
         int result = responseCode;
         result = 31 * result + responseSize;
-        result = 31 * result + htmlTagsCount;
+        result = 31 * result + keywordsCount;
         result = 31 * result + latencyInSec;
         return result;
     }

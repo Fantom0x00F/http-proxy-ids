@@ -18,7 +18,8 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
     private ConcurrentMap<Key, List<ResponseStatisticRow>> statistic = new ConcurrentHashMap<>();
     private ConcurrentMap<Key, List<Pair<Integer, Double>>> responseCodeDistribution = new ConcurrentHashMap<>();
     private ConcurrentMap<Key, Pair<Double, Double>> responseSizeDistributionParams = new ConcurrentHashMap<>();
-    private ConcurrentMap<Key, Pair<Double, Double>> tagsCountDistributionParams = new ConcurrentHashMap<>();
+    private ConcurrentMap<Key, Pair<Double, Double>> keywordsCountDistributionParams = new ConcurrentHashMap<>();
+    private ConcurrentMap<Key, Pair<Double, Double>> latencyDistributionParams = new ConcurrentHashMap<>();
 
     @Override
     public void saveLearnChunk(RequestParameters requestParameters, ResponseStatisticRow data) {
@@ -58,8 +59,11 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
             case response_size:
                 responseSizeDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
                 break;
-            case html_tags_count:
-                tagsCountDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
+            case keywords_count:
+                keywordsCountDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
+                break;
+            case latency:
+                latencyDistributionParams.put(key(requestParameters), ImmutablePair.of(mathExpectation, variance));
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);
@@ -71,8 +75,10 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
         switch (measurement) {
             case response_size:
                 return responseSizeDistributionParams.get(key(requestParameters));
-            case html_tags_count:
-                return tagsCountDistributionParams.get(key(requestParameters));
+            case keywords_count:
+                return keywordsCountDistributionParams.get(key(requestParameters));
+            case latency:
+                return latencyDistributionParams.get(key(requestParameters));
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);
         }

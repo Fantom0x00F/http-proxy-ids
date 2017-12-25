@@ -22,8 +22,10 @@ public class Analyser {
     private INotificator alertNotificator;
     private Map<Measurement, Double> thresholds;
 
+    private StatisticExtractor statisticExtractor;
+
     public synchronized boolean processRequest(RequestParameters requestParameters, ResponseData responseData) {
-        ResponseStatisticRow information = StatisticExtractor.getInformation(responseData);
+        ResponseStatisticRow information = statisticExtractor.getInformation(responseData);
 
         int learnChunksCount = statisticStorage.learnChunksCount(requestParameters);
         if (learnChunksCount < REQUIRED_REQUESTS_FOR_STATISTIC) {
@@ -59,6 +61,10 @@ public class Analyser {
         this.thresholds = thresholds;
     }
 
+    public void setKeywords(List<String> keywords) {
+        this.statisticExtractor = new StatisticExtractor(keywords);
+    }
+
     private boolean criticalDeviationDetected(RequestParameters requestParameters, ResponseStatisticRow statisticChunk) {
         boolean violation;
         Double respCodeProbability = statisticStorage.getDiscreteDistribution(Measurement.response_code, requestParameters)
@@ -71,9 +77,9 @@ public class Analyser {
                 params.getLeft(), params.getRight(), thresholds.get(Measurement.response_size));
         if (violation) return true;
 
-        Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.html_tags_count, requestParameters);
-        violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.htmlTagsCount,
-                tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.html_tags_count));
+        Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.keywords_count, requestParameters);
+        violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.keywordsCount,
+                tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.keywords_count));
         if (violation) return true;
 
         Pair<Double, Double> latencyParams = statisticStorage.getDistributionParameters(Measurement.latency, requestParameters);
@@ -91,8 +97,8 @@ public class Analyser {
         Pair<Double, Double> respSizeDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.responseSize / RESPONSE_SIZE_MEASURE_SINGLE_RANGE_WIDTH).collect(Collectors.toList()));
         statisticStorage.saveDistributionParameters(Measurement.response_size, requestParameters, respSizeDisParams.getLeft(), respSizeDisParams.getRight());
 
-        Pair<Double, Double> tagsCountDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.htmlTagsCount).collect(Collectors.toList()));
-        statisticStorage.saveDistributionParameters(Measurement.html_tags_count, requestParameters, tagsCountDisParams.getLeft(), tagsCountDisParams.getRight());
+        Pair<Double, Double> tagsCountDisParams = ProbabilityCalculator.getDistributionParameters(learnData.stream().map(row -> row.keywordsCount).collect(Collectors.toList()));
+        statisticStorage.saveDistributionParameters(Measurement.keywords_count, requestParameters, tagsCountDisParams.getLeft(), tagsCountDisParams.getRight());
 
         Pair<Double, Double> latencyDisParams = ProbabilityCalculator.getNormalDistributionParameters(learnData.stream().map(row -> row.latencyInSec).collect(Collectors.toList()));
         statisticStorage.saveDistributionParameters(Measurement.latency, requestParameters, latencyDisParams.getLeft(), latencyDisParams.getRight());
