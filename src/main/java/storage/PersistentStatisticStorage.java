@@ -70,7 +70,7 @@ public class PersistentStatisticStorage implements IStatisticStorage {
     public void saveDiscreteDistribution(Measurement measurement, RequestParameters requestParameters, List<Pair<Integer, Double>> distribution) {
         final String key = zipParameters(requestParameters);
         final List<ResponseCodeDistributionRecord> values = distribution.stream().map(v -> new ResponseCodeDistributionRecord(key, v.getKey(), v.getValue())).collect(Collectors.toList());
-        dslContext.insertInto(RESPONSE_CODE_DISTRIBUTION).values(values).executeAsync();
+        dslContext.batchInsert(values).execute();
     }
 
     @Override
@@ -94,18 +94,18 @@ public class PersistentStatisticStorage implements IStatisticStorage {
         switch (measurement) {
             case response_size:
                 dslContext.insertInto(RESPONSE_SIZE_DISTRIBUTION)
-                        .values(new ResponseSizeDistributionRecord(key, mathExpectation, variance))
-                        .executeAsync();
+                        .values(key, mathExpectation, variance)
+                        .execute();
                 break;
             case keywords_count:
                 dslContext.insertInto(KEYWORDS_COUNT_DISTRIBUTION)
-                        .values(new KeywordsCountDistributionRecord(key, mathExpectation, variance))
-                        .executeAsync();
+                        .values(key, mathExpectation, variance)
+                        .execute();
                 break;
             case latency:
                 dslContext.insertInto(LATENCY_DISTRIBUTION)
-                        .values(new LatencyDistributionRecord(key, mathExpectation, variance))
-                        .executeAsync();
+                        .values(key, mathExpectation, variance)
+                        .execute();
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown distribution " + measurement);
