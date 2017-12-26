@@ -40,7 +40,7 @@ public class InMemoryStatisticStorage implements IStatisticStorage {
 
     @Override
     public int learnChunksCount(RequestParameters requestParameters) {
-        return statistic.getOrDefault(requestParameters, Collections.emptyList()).size();
+        return statistic.getOrDefault(key(requestParameters), Collections.emptyList()).size();
     }
 
     @Override
