@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class Analyser {
 
-    private static final int REQUIRED_REQUESTS_FOR_STATISTIC = 10;
+    private static final int REQUIRED_REQUESTS_FOR_STATISTIC = 1000;
     private static final int RESPONSE_SIZE_MEASURE_SINGLE_RANGE_WIDTH = 10;
 
     private IStatisticStorage statisticStorage;
@@ -42,11 +42,7 @@ public class Analyser {
             return true;
         }
 
-        if (criticalDeviationDetected(requestParameters, information)) {
-            alertNotificator.error("Anomaly detected by " + requestParameters);
-            return false;
-        }
-        return true;
+        return !criticalDeviationDetected(requestParameters, information);
     }
 
     public void setStatisticStorage(IStatisticStorage statisticStorage) {
@@ -70,22 +66,34 @@ public class Analyser {
         Double respCodeProbability = statisticStorage.getDiscreteDistribution(Measurement.response_code, requestParameters)
                 .stream().filter(it -> it.getLeft() == statisticChunk.responseCode).findFirst().get().getRight();
         violation = ProbabilityChecker.violateByThreshold(respCodeProbability, thresholds.get(Measurement.response_code));
-        if (violation) return true;
+        if (violation) {
+            alertNotificator.error("Anomaly detected on " + requestParameters + " by " + Measurement.response_code);
+            return true;
+        }
 
         Pair<Double, Double> params = statisticStorage.getDistributionParameters(Measurement.response_size, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.responseSize / RESPONSE_SIZE_MEASURE_SINGLE_RANGE_WIDTH,
                 params.getLeft(), params.getRight(), thresholds.get(Measurement.response_size));
-        if (violation) return true;
+        if (violation) {
+            alertNotificator.error("Anomaly detected on " + requestParameters + " by " + Measurement.response_size);
+            return true;
+        }
 
         Pair<Double, Double> tagsParams = statisticStorage.getDistributionParameters(Measurement.keywords_count, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.keywordsCount,
                 tagsParams.getLeft(), tagsParams.getRight(), thresholds.get(Measurement.keywords_count));
-        if (violation) return true;
+        if (violation) {
+            alertNotificator.error("Anomaly detected on " + requestParameters + " by " + Measurement.keywords_count);
+            return true;
+        }
 
         Pair<Double, Double> latencyParams = statisticStorage.getDistributionParameters(Measurement.latency, requestParameters);
         violation = ProbabilityChecker.violateByChebyshevCheck(statisticChunk.latencyInSec,
                 latencyParams.getLeft(), latencyParams.getRight(), thresholds.get(Measurement.latency));
 
+        if (violation) {
+            alertNotificator.error("Anomaly detected on " + requestParameters + " by " + Measurement.latency);
+        }
         return violation;
     }
 
